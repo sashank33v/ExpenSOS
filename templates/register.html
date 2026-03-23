@@ -1,0 +1,36 @@
+{% extends "auth_base.html" %}
+{% block title %}Create Account | ExpenSOS{% endblock %}
+
+{% block content %}
+<div class="auth-title">{{ t.join_expensos if t else 'Create your account' }}</div>
+<div class="auth-subtitle">{{ t.start_tracking if t else 'Start tracking your finances in minutes' }}</div>
+
+<form action="/register" method="POST">
+    <div class="form-group">
+        <label class="form-label">{{ t.username if t else 'Username' }}</label>
+        <input type="text" name="username" class="form-input" placeholder="johndoe" required>
+    </div>
+    <div class="form-group">
+        <label class="form-label">{{ t.email if t else 'Email address' }}</label>
+        <input type="email" name="email" class="form-input" placeholder="you@example.com" required>
+    </div>
+    <div class="form-group">
+        <label class="form-label">{{ t.password if t else 'Password' }}</label>
+        <input type="password" name="password" class="form-input" placeholder="At least 6 characters" required
+            minlength="6">
+        <div class="form-hint">Must be at least 6 characters long.</div>
+    </div>
+    <button type="submit" class="submit-btn">
+        {{ t.register if t else 'Create Account' }}
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+                d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+        </svg>
+    </button>
+</form>
+
+<div class="auth-footer">
+    {{ t.already_have_account if t else 'Already have an account?' }}
+    <a href="/login">{{ t.login if t else 'Sign in' }}</a>
+</div>
+{% endblock %}

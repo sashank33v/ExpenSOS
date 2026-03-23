@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+{% block title %}Expenses | ExpenSOS{% endblock %}
+{% block header_title %}{{ t.expenses }}{% endblock %}
+{% block header_subtitle %}Manage and filter your transaction history{% endblock %}
+
+{% block header_actions %}
+<a href="/" class="btn btn-primary btn-sm">
+    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+    </svg>
+    Add Expense
+</a>
+{% endblock %}
+
+{% block content %}
+<!-- Filter -->
+<div class="card" style="margin-bottom:18px">
+    <div style="padding:16px 22px;border-bottom:1px solid var(--gray-100)">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+            <div style="font-size:14px;font-weight:700;color:var(--gray-900);display:flex;align-items:center;gap:7px">
+                <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+                    style="color:var(--brand-500)">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                </svg>
+                Filters
+            </div>
+            <div style="display:flex;align-items:center;gap:14px;font-size:12.5px">
+                <span><span style="color:var(--gray-400)">Found:</span> <strong>{{ total_count }}</strong></span>
+                <span style="width:1px;height:12px;background:var(--gray-200);display:inline-block"></span>
+                <span><span style="color:var(--gray-400)">Total:</span> <strong style="color:var(--brand-600)">{{
+                        currency }}{{ total|round(0)|int }}</strong></span>
+            </div>
+        </div>
+    </div>
+    <div style="padding:18px 22px">
+        <form method="GET">
+            <div style="position:relative;margin-bottom:12px">
+                <div
+                    style="position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--gray-400);pointer-events:none">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </div>
+                <input type="text" name="search" placeholder="{{ t.search_placeholder }}" value="{{ search or '' }}"
+                    class="input" style="padding-left:38px">
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr auto;gap:9px;align-items:end">
+                <select name="category" class="input select-field">
+                    <option value="">All Categories</option>
+                    {% for cat in categories %}
+                    <option value="{{ cat }}" {% if category==cat %}selected{% endif %}>
+                        {% if cat=='Food' %}🍔{% elif cat=='Transport' %}🚗{% elif cat=='Shopping' %}🛒{% elif
+                        cat=='Rent' %}🏠{% else %}📦{% endif %} {{ cat }}
+                    </option>
+                    {% endfor %}
+                </select>
+                <select name="year" class="input select-field">
+                    <option value="">Year</option>
+                    {% for y in range(2022,2031) %}<option value="{{ y }}" {% if year==y|string %}selected{% endif %}>{{
+                        y }}</option>{% endfor %}
+                </select>
+                <select name="month" class="input select-field">
+                    <option value="">Month</option>
+                    {% for m in range(1,13) %}<option value="{{ m }}" {% if month==m|string %}selected{% endif %}>{{ m
+                        }}</option>{% endfor %}
+                </select>
+                <select name="day" class="input select-field">
+                    <option value="">Day</option>
+                    {% for d in range(1,32) %}<option value="{{ d }}" {% if day==d|string %}selected{% endif %}>{{ d }}
+                    </option>{% endfor %}
+                </select>
+                <div style="display:flex;gap:6px">
+                    <button type="submit" class="btn btn-primary">Apply</button>
+                    <a href="/expenses" class="btn btn-ghost" title="Clear filters">
+                        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Table -->
+<div class="card" style="overflow:hidden">
+    <div class="table-wrap">
+        <table style="min-width:700px">
+            <thead>
+                <tr>
+                    <th>{{ t.date }}</th>
+                    <th>{{ t.category }}</th>
+                    <th>{{ t.note }}</th>
+                    <th>{{ t.amount }}</th>
+                    <th style="text-align:center">Receipt</th>
+                    <th style="text-align:right">{{ t.actions }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for e in expenses %}
+                <tr>
+                    <td style="font-size:12px;color:var(--gray-500);white-space:nowrap;font-weight:500">{{ e.date }}
+                    </td>
+                    <td>
+                        <div style="display:flex;align-items:center;gap:7px">
+                            <div class="cat-icon">{% if e.category=='Food' %}🍔{% elif e.category=='Transport' %}🚗{%
+                                elif e.category=='Shopping' %}🛒{% elif e.category=='Rent' %}🏠{% else %}📦{% endif %}
+                            </div>
+                            <span style="font-size:13px;font-weight:600;color:var(--gray-900)">{{ e.category }}</span>
+                            {% if e.is_recurring %}<span class="badge badge-cyan" style="font-size:9px">↻</span>{% endif
+                            %}
+                        </div>
+                    </td>
+                    <td
+                        style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--gray-500);font-size:13px">
+                        {{ e.note or '—' }}</td>
+                    <td style="font-weight:700;font-size:13.5px;white-space:nowrap">{{ currency }} {{ e.amount }}</td>
+                    <td style="text-align:center">
+                        {% if e.receipt_path %}
+                        <a href="/uploads/{{ e.receipt_path }}" target="_blank"
+                            style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:6px;background:var(--brand-50);color:var(--brand-600);border:1px solid var(--brand-200);font-size:12px">📎</a>
+                        {% else %}
+                        <span style="color:var(--gray-300)">—</span>
+                        {% endif %}
+                    </td>
+                    <td style="text-align:right">
+                        <div style="display:flex;align-items:center;justify-content:flex-end;gap:5px">
+                            <a href="/edit/{{ e.id }}" class="action-btn edit">
+                                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                            </a>
+                            <a href="/delete/{{ e.id }}" class="action-btn delete"
+                                onclick="return confirm('{{ t.confirm_delete }}')">
+                                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+                {% if expenses|length == 0 %}
+                <tr>
+                    <td colspan="6">
+                        <div class="empty-state">
+                            <svg width="38" height="38" fill="none" stroke="currentColor" stroke-width="1.5"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                            <p>{{ t.no_expenses_found }}</p>
+                            <small>Try adjusting your filters.</small>
+                        </div>
+                    </td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if total_pages > 1 %}
+    <div
+        style="padding:14px 18px;border-top:1px solid var(--gray-100);display:flex;align-items:center;justify-content:space-between">
+        <span style="font-size:12.5px;color:var(--gray-500)">Page <strong>{{ page }}</strong> of <strong>{{ total_pages
+                }}</strong></span>
+        <div style="display:flex;align-items:center;gap:5px">
+            {% if page > 1 %}
+            <a href="?page={{ page-1 }}{% if search %}&search={{ search }}{% endif %}{% if category %}&category={{ category }}{% endif %}{% if year %}&year={{ year }}{% endif %}{% if month %}&month={{ month }}{% endif %}{% if day %}&day={{ day }}{% endif %}"
+                class="btn btn-secondary btn-sm">← Prev</a>
+            {% endif %}
+            {% for p in range(1, total_pages+1) %}
+            {% if p == page %}
+            <span
+                style="width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;background:var(--brand-600);color:#fff;font-size:13px;font-weight:700">{{
+                p }}</span>
+            {% elif p <= 3 or p> total_pages-2 or (p >= page-1 and p <= page+1) %} <a
+                    href="?page={{ p }}{% if search %}&search={{ search }}{% endif %}{% if category %}&category={{ category }}{% endif %}{% if year %}&year={{ year }}{% endif %}{% if month %}&month={{ month }}{% endif %}{% if day %}&day={{ day }}{% endif %}"
+                    style="width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;font-size:13px;font-weight:500;color:var(--gray-600);transition:background .15s"
+                    onmouseover="this.style.background='var(--gray-100)'" onmouseout="this.style.background=''">{{ p
+                    }}</a>
+                    {% elif p == 4 or p == total_pages-2 %}
+                    <span style="color:var(--gray-400);font-size:13px">…</span>
+                    {% endif %}
+                    {% endfor %}
+                    {% if page < total_pages %} <a
+                        href="?page={{ page+1 }}{% if search %}&search={{ search }}{% endif %}{% if category %}&category={{ category }}{% endif %}{% if year %}&year={{ year }}{% endif %}{% if month %}&month={{ month }}{% endif %}{% if day %}&day={{ day }}{% endif %}"
+                        class="btn btn-secondary btn-sm">Next →</a>
+                        {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

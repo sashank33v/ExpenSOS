@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% block title %}Settings | ExpenSOS{% endblock %}
+{% block header_title %}{{ t.settings }}{% endblock %}
+{% block header_subtitle %}Manage your preferences{% endblock %}
+
+{% block content %}
+<div style="display:grid;grid-template-columns:260px 1fr;gap:22px;align-items:start">
+
+    <!-- Profile sidebar -->
+    <div style="display:flex;flex-direction:column;gap:14px;position:sticky;top:76px">
+        <div class="card card-p" style="text-align:center">
+            <div
+                style="width:68px;height:68px;border-radius:50%;background:linear-gradient(135deg,var(--brand-700),var(--brand-400));display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:900;color:#fff;margin:0 auto 14px;box-shadow:0 8px 24px rgba(6,182,212,.35)">
+                {{ user.username[:1]|upper }}
+            </div>
+            <div style="font-size:16px;font-weight:800;color:var(--gray-900);margin-bottom:3px">{{ user.username }}
+            </div>
+            <div style="font-size:13px;color:var(--gray-500)">{{ user.email }}</div>
+            <span class="badge badge-cyan" style="margin:10px auto 0;display:inline-flex">PRO</span>
+            <div class="divider"></div>
+            <div style="text-align:left;font-size:13px">
+                <div style="display:flex;justify-content:space-between">
+                    <span style="color:var(--gray-500)">Member since</span>
+                    <span style="font-weight:600;color:var(--gray-700)">{{ user.created_at[:10] }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card card-p">
+            <div
+                style="font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--gray-400);margin-bottom:12px">
+                Security</div>
+            <button type="button" class="btn btn-secondary btn-full"
+                style="justify-content:flex-start;gap:8px;margin-bottom:8px">
+                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                </svg>
+                Change Password
+            </button>
+            <button type="button" class="btn btn-danger btn-full" style="justify-content:flex-start;gap:8px">
+                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                Delete Account
+            </button>
+        </div>
+    </div>
+
+    <!-- Preferences Form -->
+    <div class="card card-p">
+        <div class="card-title" style="margin-bottom:22px;font-size:16px">
+            <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+                style="color:var(--brand-500)">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            {{ t.preferences if t else 'Application Preferences' }}
+        </div>
+
+        <form action="/settings/update" method="POST">
+
+            <!-- Theme -->
+            <div style="margin-bottom:22px">
+                <div class="input-label" style="margin-bottom:10px">{{ t.theme if t else 'Theme' }}</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                    {% for theme_val, theme_label, theme_icon in [('dark','Dark Mode','🌙'),('light','Light Mode','☀️')]
+                    %}
+                    <label style="cursor:pointer;display:block">
+                        <input type="radio" name="theme" value="{{ theme_val }}" style="display:none" {% if
+                            settings.theme==theme_val %}checked{% endif %}
+                            onchange="document.querySelectorAll('.theme-card').forEach(c=>c.style.borderColor='var(--gray-200)');this.closest('label').querySelector('.theme-card').style.borderColor='var(--brand-500)'">
+                        <div class="theme-card"
+                            style="padding:14px;border:2px solid {{ 'var(--brand-500)' if settings.theme==theme_val else 'var(--gray-200)' }};border-radius:11px;display:flex;align-items:center;gap:11px;transition:border-color .18s">
+                            <span style="font-size:20px">{{ theme_icon }}</span>
+                            <div>
+                                <div style="font-size:13.5px;font-weight:600;color:var(--gray-900)">{{ theme_label }}
+                                </div>
+                            </div>
+                            {% if settings.theme==theme_val %}
+                            <div
+                                style="margin-left:auto;width:17px;height:17px;border-radius:50%;background:var(--brand-500);display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:800">
+                                ✓</div>
+                            {% endif %}
+                        </div>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Currency + Language -->
+            <div class="grid grid-cols-2 gap-4" style="margin-bottom:22px">
+                <div class="input-group">
+                    <label class="input-label">{{ t.currency }}</label>
+                    <select name="currency" class="input select-field">
+                        {% for code, name in currencies %}
+                        <option value="{{ code }}" {% if settings.currency==code %}selected{% endif %}>{{ name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label class="input-label">{{ t.language }}</label>
+                    <select name="language" class="input select-field">
+                        {% for code, name in languages %}
+                        <option value="{{ code }}" {% if settings.language==code %}selected{% endif %}>{{ name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <!-- Font Size -->
+            <div style="margin-bottom:26px">
+                <label class="input-label" style="margin-bottom:9px">{{ t.font_size if t else 'Font Size' }}</label>
+                <div
+                    style="display:flex;background:var(--gray-100);padding:3px;border-radius:10px;border:1px solid var(--gray-200);gap:3px">
+                    {% for code, name in font_sizes %}
+                    <label style="flex:1;cursor:pointer">
+                        <input type="radio" name="font_size" value="{{ code }}" style="display:none" {% if
+                            settings.font_size==code %}checked{% endif %}>
+                        <div
+                            style="padding:7px;border-radius:8px;text-align:center;font-size:13px;font-weight:500;color:var(--gray-500);transition:all .15s;{{ 'background:#fff;color:var(--gray-900);box-shadow:0 1px 3px rgba(0,0,0,.07);' if settings.font_size==code else '' }}">
+                            {{ name }}</div>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div style="border-top:1px solid var(--gray-200);padding-top:18px;display:flex;justify-content:flex-end">
+                <button type="submit" class="btn btn-primary" style="padding:10px 24px;font-size:14px">{{
+                    t.save_settings }}</button>
+            </div>
+        </form>
+    </div>
+
+</div>
+{% endblock %}

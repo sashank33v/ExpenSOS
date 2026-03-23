@@ -1,0 +1,639 @@
+{% extends "base.html" %}
+{% block title %}Dashboard | ExpenSOS{% endblock %}
+{% block header_title %}Dashboard{% endblock %}
+{% block header_subtitle %}{{ today.strftime('%B %d, %Y') }}{% endblock %}
+
+{% block header_actions %}
+<a href="#add-expense" class="btn btn-primary btn-sm"
+    onclick="document.getElementById('add-expense').scrollIntoView({behavior:'smooth'});return false;">
+    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+    </svg>
+    Add Expense
+</a>
+{% endblock %}
+
+{% block content %}
+<!-- ── STAT CARDS ─────────────────────────────────────── -->
+<div class="grid grid-cols-3 gap-5" style="margin-bottom:22px">
+
+    <div class="stat-card">
+        <div class="stat-glow" style="background:var(--brand-400)"></div>
+        <div class="stat-label">{{ t.total_spent }}</div>
+        <div class="stat-value">{{ currency }}{{ total|round(0)|int }}</div>
+        <div class="stat-sub" style="color:var(--brand-600)">
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+            </svg>
+            All time
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-glow" style="background:var(--purple-400)"></div>
+        <div class="stat-label">{{ t.this_month }}</div>
+        <div class="stat-value">{{ currency }}{{ month_total|round(0)|int }}</div>
+        <div class="stat-sub" style="color:var(--purple-500)">
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            Current month
+        </div>
+    </div>
+
+    <div class="stat-card" id="chartCard" style="cursor:pointer;display:flex;flex-direction:column"
+        title="Click to expand chart">
+        <div class="stat-label">{{ t.by_category }}</div>
+        <div
+            style="flex:1;display:flex;align-items:center;justify-content:center;height:90px;position:relative;margin-top:6px">
+            {% if category_data %}
+            <canvas id="categoryChart"></canvas>
+            {% else %}
+            <div class="empty-state" style="padding:8px">
+                <svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
+                </svg>
+                <small>No data yet</small>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+
+<!-- ── MAIN GRID ──────────────────────────────────────── -->
+<div class="grid gap-5" style="grid-template-columns:1fr 1fr;margin-bottom:22px">
+
+    <!-- Left: Insights + MoM -->
+    <div style="display:flex;flex-direction:column;gap:18px">
+
+        {% if insights %}
+        <div class="card">
+            <div class="card-header">
+                <div>
+                    <div class="card-title">
+                        <div
+                            style="width:28px;height:28px;border-radius:8px;background:rgba(6,182,212,.11);display:flex;align-items:center;justify-content:center;color:var(--brand-500)">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                            </svg>
+                        </div>
+                        {{ t.smart_insights }}
+                    </div>
+                </div>
+            </div>
+            <div style="padding:14px;display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                {% for insight in insights %}
+                <div style="padding:11px;border-radius:10px;background:var(--gray-50);border:1px solid var(--gray-200);font-size:12.5px;color:var(--gray-700);display:flex;align-items:flex-start;gap:7px;line-height:1.45;transition:transform .2s"
+                    onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform=''">
+                    <span style="font-size:15px;flex-shrink:0;margin-top:1px">{{ insight[0] if insight|length > 0 else
+                        '💡' }}</span>
+                    <span>{{ insight[2:] if insight|length > 1 else insight }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if comparisons %}
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">
+                    <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+                        style="color:var(--purple-500)">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" />
+                    </svg>
+                    {{ t.month_over_month }}
+                </div>
+            </div>
+            <div style="padding:6px 16px">
+                {% for c in comparisons %}
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 6px;border-radius:8px;transition:background .15s"
+                    onmouseover="this.style.background='var(--gray-50)'" onmouseout="this.style.background=''">
+                    <div style="display:flex;align-items:center;gap:9px">
+                        <div class="cat-icon">{% if c.category=='Food' %}🍔{% elif c.category=='Transport' %}🚗{% elif
+                            c.category=='Shopping' %}🛒{% elif c.category=='Rent' %}🏠{% else %}📦{% endif %}</div>
+                        <span style="font-size:13px;font-weight:600;color:var(--gray-900)">{{ c.category }}</span>
+                    </div>
+                    {% set is_up = c.direction == 'more' %}
+                    <span class="badge {{ 'badge-red' if is_up else 'badge-green' }}">{{ '↑' if is_up else '↓' }} {{
+                        c.change }}%</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+
+    <!-- Right: Add Expense Form -->
+    <div id="add-expense" class="card">
+        <div class="card-header">
+            <div>
+                <div class="card-title">{{ t.add_expense }}</div>
+                <div class="card-subtitle">Log a new transaction</div>
+            </div>
+        </div>
+        <div style="padding:22px">
+            <form action="/add" method="POST" enctype="multipart/form-data">
+                <div class="grid grid-cols-2 gap-3" style="margin-bottom:12px">
+                    <div class="input-group">
+                        <label class="input-label">{{ t.amount }}</label>
+                        <div class="input-prefix-wrap">
+                            <span class="input-prefix">{{ currency }}</span>
+                            <input type="number" name="amount" class="input" placeholder="0.00" required step="0.01"
+                                min="0" style="padding-left:27px;font-size:15px;font-weight:700">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">{{ t.category }}</label>
+                        <select name="category" class="input select-field">
+                            <option value="Food">🍔 {{ t.food }}</option>
+                            <option value="Transport">🚗 {{ t.transport }}</option>
+                            <option value="Shopping">🛒 {{ t.shopping }}</option>
+                            <option value="Rent">🏠 {{ t.rent }}</option>
+                            <option value="Others">📦 {{ t.others }}</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="input-group" style="margin-bottom:12px">
+                    <label class="input-label">{{ t.note }}</label>
+                    <input type="text" name="note" class="input" placeholder="What was this for?">
+                </div>
+
+                <div class="grid grid-cols-3 gap-3" style="margin-bottom:12px">
+                    <div class="input-group">
+                        <label class="input-label">{{ t.day }}</label>
+                        <select name="day" required class="input select-field">
+                            <option value="">Day</option>
+                            {% for d in range(1,32) %}<option value="{{ d }}" {% if d==today.day %}selected{% endif %}>
+                                {{ d }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">{{ t.month }}</label>
+                        <select name="month" required class="input select-field">
+                            <option value="">Month</option>
+                            {% for m in range(1,13) %}<option value="{{ m }}" {% if m==today.month %}selected{% endif
+                                %}>{{ m }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">{{ t.year }}</label>
+                        <select name="year" required class="input select-field">
+                            <option value="">Year</option>
+                            {% for y in range(2022,2031) %}<option value="{{ y }}" {% if y==today.year %}selected{%
+                                endif %}>{{ y }}</option>{% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Toggle row -->
+                <div
+                    style="display:flex;align-items:center;padding:10px 13px;background:var(--gray-50);border:1px solid var(--gray-200);border-radius:10px;margin-bottom:12px">
+                    <label class="toggle-wrap" style="cursor:pointer;flex:1">
+                        <input type="checkbox" name="is_recurring" class="toggle-input" id="recurChk">
+                        <div class="toggle-track"></div>
+                        <div class="toggle-thumb"></div>
+                        <span style="font-size:13px;font-weight:500;color:var(--gray-700);margin-left:4px">{{
+                            t.mark_recurring }}</span>
+                    </label>
+                </div>
+
+                <!-- ── OCR RECEIPT UPLOAD ──────────────────────────── -->
+                <div id="ocrZone"
+                    style="border:2px dashed var(--gray-300);border-radius:12px;padding:16px;margin-bottom:14px;cursor:pointer;transition:all .2s;text-align:center;position:relative"
+                    onclick="document.getElementById('receiptInput').click()"
+                    ondragover="event.preventDefault();this.style.borderColor='var(--brand-500)';this.style.background='rgba(6,182,212,.04)'"
+                    ondragleave="this.style.borderColor='var(--gray-300)';this.style.background=''"
+                    ondrop="handleDrop(event)">
+
+                    <!-- Default (idle) state -->
+                    <div id="ocrIdle">
+                        <div
+                            style="display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:10px;background:var(--gray-100);border:1px solid var(--gray-200);margin-bottom:8px">
+                            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"
+                                viewBox="0 0 24 24" style="color:var(--gray-400)">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                        </div>
+                        <div style="font-size:13px;font-weight:700;color:var(--gray-700)">Upload Bill / Receipt</div>
+                        <div style="font-size:11.5px;color:var(--gray-400);margin-top:3px">Drop image here or click to
+                            browse &mdash; amount auto-detected via OCR</div>
+                    </div>
+
+                    <!-- Scanning state -->
+                    <div id="ocrScanning" style="display:none">
+                        <div style="display:flex;align-items:center;gap:10px">
+                            <div id="ocrThumb"
+                                style="width:52px;height:52px;border-radius:8px;overflow:hidden;flex-shrink:0;border:1px solid var(--gray-200);background:var(--gray-100)">
+                                <img id="ocrThumbImg" src="" alt="" style="width:100%;height:100%;object-fit:cover">
+                            </div>
+                            <div style="flex:1;text-align:left">
+                                <div style="font-size:12.5px;font-weight:700;color:var(--gray-700);margin-bottom:6px"
+                                    id="ocrStatusText">Reading bill&hellip;</div>
+                                <div style="height:5px;background:var(--gray-200);border-radius:100px;overflow:hidden">
+                                    <div id="ocrProgress"
+                                        style="height:100%;width:0%;background:linear-gradient(90deg,var(--brand-700),var(--brand-400));border-radius:100px;transition:width .4s ease">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Result state -->
+                    <div id="ocrResult" style="display:none">
+                        <div style="display:flex;align-items:center;gap:12px">
+                            <div
+                                style="width:52px;height:52px;border-radius:8px;overflow:hidden;flex-shrink:0;border:1px solid var(--gray-200)">
+                                <img id="ocrResultThumb" src="" alt="" style="width:100%;height:100%;object-fit:cover">
+                            </div>
+                            <div style="flex:1;text-align:left">
+                                <div
+                                    style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--brand-600);margin-bottom:2px">
+                                    Amount detected</div>
+                                <div id="ocrAmountDisplay"
+                                    style="font-size:22px;font-weight:900;letter-spacing:-0.8px;color:var(--gray-900)">
+                                </div>
+                                <div id="ocrConfidence" style="font-size:11px;color:var(--gray-400);margin-top:1px">
+                                </div>
+                            </div>
+                            <button type="button" onclick="resetOcr(event)"
+                                style="width:26px;height:26px;border-radius:7px;border:1px solid var(--gray-200);background:var(--gray-50);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--gray-500);flex-shrink:0">
+                                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Error state -->
+                    <div id="ocrError" style="display:none">
+                        <div style="display:flex;align-items:center;gap:10px">
+                            <div
+                                style="width:52px;height:52px;border-radius:8px;overflow:hidden;flex-shrink:0;border:1px solid rgba(239,68,68,.2);background:rgba(239,68,68,.06)">
+                                <img id="ocrErrorThumb" src="" alt="" style="width:100%;height:100%;object-fit:cover">
+                            </div>
+                            <div style="flex:1;text-align:left">
+                                <div style="font-size:12.5px;font-weight:700;color:var(--red-500)">Could not detect
+                                    amount</div>
+                                <div style="font-size:11.5px;color:var(--gray-400);margin-top:2px">Please enter it
+                                    manually below</div>
+                            </div>
+                            <button type="button" onclick="resetOcr(event)"
+                                style="width:26px;height:26px;border-radius:7px;border:1px solid rgba(239,68,68,.2);background:rgba(239,68,68,.06);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--red-500);flex-shrink:0">
+                                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Hidden real file input -->
+                    <input type="file" name="receipt" accept="image/*" id="receiptInput"
+                        style="position:absolute;inset:0;opacity:0;pointer-events:none;width:100%;height:100%">
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-full" id="submitBtn"
+                    style="padding:12px;font-size:14px;font-weight:700">
+                    {{ t.add_expense }}
+                </button>
+            </form>
+        </div>
+    </div>
+
+</div>
+
+<!-- ── BUDGET + RECENT ────────────────────────────────── -->
+<div class="grid gap-5"
+    style="{% if budget_progress %}grid-template-columns:300px 1fr{% else %}grid-template-columns:1fr{% endif %}">
+
+    {% if budget_progress %}
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">
+                <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+                    style="color:var(--green-500)">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+                {{ t.budget_overview }}
+            </div>
+            <a href="/budgets"
+                style="font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--brand-600)">Manage</a>
+        </div>
+        <div style="padding:14px 18px;display:flex;flex-direction:column;gap:14px">
+            {% for b in budget_progress %}
+            <div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+                    <span style="font-size:13px;font-weight:600;color:var(--gray-700)">{{ b.category }}</span>
+                    {% set sc = 'var(--red-500)' if b.status=='danger' else ('var(--yellow-400)' if b.status=='warning'
+                    else 'var(--green-500)') %}
+                    <span style="font-size:12px;font-weight:700;color:{{ sc }}">{{ b.percentage }}%</span>
+                </div>
+                <div class="progress-bar-wrap">
+                    <div class="progress-bar {{ 'red' if b.status=='danger' else ('yellow' if b.status=='warning' else 'cyan') }}"
+                        style="width:{{ b.percentage }}%"></div>
+                </div>
+                <div style="display:flex;justify-content:space-between;margin-top:4px">
+                    <span style="font-size:11px;color:var(--gray-400)">{{ currency }}{{ b.spent|round(0)|int }}</span>
+                    <span style="font-size:11px;color:var(--gray-400)">{{ currency }}{{ b.budget|round(0)|int }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Recent Expenses -->
+    <div class="card" style="overflow:hidden">
+        <div class="card-header">
+            <div class="card-title">{{ t.recent_expenses }}</div>
+            {% if expenses|length > 0 %}
+            <a href="/expenses" class="btn btn-secondary btn-sm">View all</a>
+            {% endif %}
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>{{ t.date }}</th>
+                        <th>{{ t.category }}</th>
+                        <th>{{ t.note }}</th>
+                        <th>{{ t.amount }}</th>
+                        <th style="text-align:right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for e in expenses %}
+                    <tr>
+                        <td style="font-size:12px;color:var(--gray-500);white-space:nowrap">{{ e.date }}</td>
+                        <td>
+                            <div style="display:flex;align-items:center;gap:7px">
+                                <div class="cat-icon">{% if e.category=='Food' %}🍔{% elif e.category=='Transport'
+                                    %}🚗{% elif e.category=='Shopping' %}🛒{% elif e.category=='Rent' %}🏠{% else %}📦{%
+                                    endif %}</div>
+                                <span style="font-size:13px;font-weight:600;color:var(--gray-900)">{{ e.category
+                                    }}</span>
+                                {% if e.is_recurring %}<span class="badge badge-cyan" style="font-size:9px">↻</span>{%
+                                endif %}
+                            </div>
+                        </td>
+                        <td
+                            style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--gray-500);font-size:13px">
+                            {{ e.note or '—' }}</td>
+                        <td style="font-weight:700;font-size:14px;white-space:nowrap">{{ currency }} {{ e.amount }}</td>
+                        <td style="text-align:right">
+                            <div style="display:flex;align-items:center;justify-content:flex-end;gap:5px">
+                                <a href="/edit/{{ e.id }}" class="action-btn edit" title="{{ t.edit }}">
+                                    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                    </svg>
+                                </a>
+                                <a href="/delete/{{ e.id }}" class="action-btn delete" title="{{ t.delete }}"
+                                    onclick="return confirm('{{ t.confirm_delete }}')">
+                                    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% if expenses|length == 0 %}
+                    <tr>
+                        <td colspan="5">
+                            <div class="empty-state">
+                                <svg width="38" height="38" fill="none" stroke="currentColor" stroke-width="1.5"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                <p>{{ t.no_expenses_yet }}</p>
+                                <small>Add your first expense using the form above</small>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<!-- Chart Modal -->
+<div id="chartModal"
+    style="position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.68);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;padding:24px">
+    <div
+        style="background:#fff;border-radius:20px;padding:28px;max-width:460px;width:100%;box-shadow:0 40px 80px rgba(0,0,0,.3);animation:slideUp .3s ease">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:22px">
+            <span style="font-size:17px;font-weight:800;color:var(--gray-900)">{{ t.by_category }}</span>
+            <button onclick="closeModal()"
+                style="width:28px;height:28px;border-radius:8px;border:1px solid var(--gray-200);background:var(--gray-50);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--gray-500)">
+                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+        <canvas id="enlargedChart" style="max-width:290px;margin:0 auto;display:block"></canvas>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    const categoryData = {{ category_data | tojson | default ('{}') }};
+    const labels = Object.keys(categoryData);
+    const data = Object.values(categoryData);
+    const total = data.reduce((s, v) => s + v, 0);
+    const isDark = document.documentElement.classList.contains('dark');
+    const COLORS = ['#f87171', '#3b82f6', '#34d399', '#fbbf24', '#a78bfa', '#fb923c', '#22d3ee'];
+
+    Chart.defaults.font.family = "'Inter',sans-serif";
+    let enlargedChart = null;
+
+    if (labels.length) {
+        new Chart(document.getElementById('categoryChart').getContext('2d'), {
+            type: 'doughnut',
+            data: { labels, datasets: [{ data, backgroundColor: COLORS, borderWidth: 2, borderColor: isDark ? '#111113' : '#fff', hoverOffset: 5 }] },
+            options: {
+                responsive: true, maintainAspectRatio: false, cutout: '72%',
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: isDark ? 'rgba(255,255,255,.94)' : 'rgba(17,17,19,.9)',
+                        titleColor: isDark ? '#111' : '#fff', bodyColor: isDark ? '#374151' : '#e4e4e7',
+                        padding: 11, cornerRadius: 8,
+                        callbacks: { label: c => ` ${c.raw.toLocaleString()} (${total > 0 ? ((c.raw / total) * 100).toFixed(1) : 0}%)` }
+                    }
+                }
+            }
+        });
+    }
+
+    document.getElementById('chartCard').addEventListener('click', function () {
+        if (!labels.length) return;
+        const modal = document.getElementById('chartModal');
+        modal.style.display = 'flex';
+        if (!enlargedChart) {
+            enlargedChart = new Chart(document.getElementById('enlargedChart').getContext('2d'), {
+                type: 'doughnut',
+                data: { labels, datasets: [{ data, backgroundColor: COLORS, borderWidth: 2, borderColor: '#fff' }] },
+                options: {
+                    responsive: true, cutout: '60%',
+                    plugins: {
+                        legend: { position: 'bottom', labels: { color: '#374151', font: { size: 12, family: "'Inter',sans-serif" }, padding: 14, usePointStyle: true, pointStyle: 'circle' } },
+                        tooltip: { callbacks: { label: c => ` {{ currency }}${c.raw.toLocaleString()}` } }
+                    }
+                }
+            });
+        }
+    });
+    function closeModal() {
+        document.getElementById('chartModal').style.display = 'none';
+        if (enlargedChart) { enlargedChart.destroy(); enlargedChart = null; }
+    }
+    document.getElementById('chartModal').addEventListener('click', function (e) { if (e.target === this) closeModal(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+    // Toggle thumb
+    document.querySelectorAll('.toggle-input').forEach(inp => {
+        inp.addEventListener('change', () => {
+            const thumb = inp.closest('.toggle-wrap').querySelector('.toggle-thumb');
+            thumb.style.transform = inp.checked ? 'translateX(18px)' : 'translateX(0)';
+        });
+    });
+
+    // ═══════════════════════════════════════════════════════════
+    // OCR ENGINE — Tesseract.js client-side receipt scanner
+    // ═══════════════════════════════════════════════════════════
+
+    // Switch between zone states: idle | scanning | result | error
+    function setOcrState(state) {
+        ['Idle', 'Scanning', 'Result', 'Error'].forEach(s =>
+            document.getElementById('ocr' + s).style.display = s.toLowerCase() === state ? '' : 'none'
+        );
+        const zone = document.getElementById('ocrZone');
+        const styles = {
+            idle: { border: '', bg: '', cursor: 'pointer' },
+            scanning: { border: 'var(--brand-400)', bg: 'rgba(6,182,212,.04)', cursor: 'default' },
+            result: { border: 'var(--brand-500)', bg: 'rgba(6,182,212,.05)', cursor: 'default' },
+            error: { border: 'rgba(239,68,68,.4)', bg: 'rgba(239,68,68,.04)', cursor: 'pointer' },
+        };
+        const s = styles[state] || styles.idle;
+        zone.style.borderColor = s.border;
+        zone.style.background = s.bg;
+        zone.style.cursor = s.cursor;
+    }
+
+    // Date extraction is now handled on the server.
+
+    // Fill the Day / Month / Year select dropdowns
+    function fillDateSelects(d) {
+        const dayEl = document.querySelector('select[name="day"]');
+        const monthEl = document.querySelector('select[name="month"]');
+        const yearEl = document.querySelector('select[name="year"]');
+        if (dayEl) dayEl.value = String(d.day);
+        if (monthEl) monthEl.value = String(d.month);
+        if (yearEl) yearEl.value = String(d.year);
+        // Flash the date row
+        [dayEl, monthEl, yearEl].forEach(el => {
+            if (!el) return;
+            el.style.transition = 'box-shadow .4s,border-color .4s';
+            el.style.borderColor = 'var(--brand-500)';
+            el.style.boxShadow = '0 0 0 3px rgba(6,182,212,.18)';
+            setTimeout(() => { el.style.borderColor = ''; el.style.boxShadow = ''; }, 2200);
+        });
+    }
+
+    function setThumbs(url) {
+        ['ocrThumbImg', 'ocrResultThumb', 'ocrErrorThumb'].forEach(id => {
+            const el = document.getElementById(id); if (el) el.src = url;
+        });
+    }
+
+    async function runOcr(file) {
+        const url = URL.createObjectURL(file);
+        setThumbs(url);
+        setOcrState('scanning');
+
+        const statusEl = document.getElementById('ocrStatusText');
+        const progressEl = document.getElementById('ocrProgress');
+        progressEl.style.width = '0%';
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        statusEl.textContent = 'Uploading to server...';
+        progressEl.style.width = '30%';
+
+        try {
+            const response = await fetch('/api/ocr', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) throw new Error('OCR Failed');
+
+            progressEl.style.width = '100%';
+            statusEl.textContent = 'Processing results...';
+
+            const data = await response.json();
+
+            if (data.success && data.amount !== null) {
+                const inp = document.querySelector('input[name="amount"]');
+                inp.value = data.amount.toFixed(2);
+                inp.style.transition = 'box-shadow .4s,border-color .4s';
+                inp.style.borderColor = 'var(--brand-500)';
+                inp.style.boxShadow = '0 0 0 3px rgba(6,182,212,.22)';
+                setTimeout(() => { inp.style.borderColor = ''; inp.style.boxShadow = ''; }, 2200);
+
+                if (data.date) fillDateSelects(data.date);
+
+                const dateStr = data.date
+                    ? `${String(data.date.day).padStart(2, '0')}/${String(data.date.month).padStart(2, '0')}/${data.date.year}`
+                    : 'Date not found';
+
+                document.getElementById('ocrAmountDisplay').textContent = '{{ currency }}' + data.amount.toFixed(2);
+                document.getElementById('ocrConfidence').textContent =
+                    'Confidence ' + data.confidence + '%  ·  Date: ' + dateStr;
+                setOcrState('result');
+            } else {
+                setOcrState('error');
+            }
+        } catch (err) {
+            console.error('OCR error:', err);
+            setOcrState('error');
+        }
+    }
+
+    // Handlers
+    document.getElementById('receiptInput').addEventListener('change', function () {
+        if (this.files && this.files[0]) runOcr(this.files[0]);
+    });
+
+    const zone = document.getElementById('ocrZone');
+    zone.addEventListener('dragover', e => { e.preventDefault(); zone.style.borderColor = 'var(--brand-500)'; });
+    zone.addEventListener('dragleave', () => { if (document.getElementById('ocrIdle').style.display !== 'none') zone.style.borderColor = ''; });
+    zone.addEventListener('drop', e => {
+        e.preventDefault();
+        zone.style.borderColor = '';
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) runOcr(e.dataTransfer.files[0]);
+    });
+    function resetOcr(e) { if (e) e.stopPropagation(); setOcrState('idle'); document.getElementById('receiptInput').value = ''; }
+</script>
+{% endblock %}

@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Edit Expense | ExpenSOS{% endblock %}
+{% block header_title %}Edit Expense{% endblock %}
+{% block header_subtitle %}Update your transaction details{% endblock %}
+
+{% block header_actions %}
+<a href="/expenses" class="btn btn-secondary btn-sm">← Back to Expenses</a>
+{% endblock %}
+
+{% block content %}
+<div style="max-width:580px;margin:0 auto">
+    <div class="card card-p">
+        <div class="card-title" style="margin-bottom:22px;font-size:15px">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+                style="color:var(--brand-500)">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+            Transaction Details
+        </div>
+        <form action="/edit/{{ expense.id }}" method="POST">
+            <div class="grid grid-cols-2 gap-4" style="margin-bottom:14px">
+                <div class="input-group">
+                    <label class="input-label">{{ t.amount }}</label>
+                    <div class="input-prefix-wrap">
+                        <span class="input-prefix">{{ currency }}</span>
+                        <input type="number" name="amount" class="input" value="{{ expense.amount }}" required
+                            step="0.01" min="0" style="padding-left:27px;font-size:15px;font-weight:700">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label class="input-label">{{ t.category }}</label>
+                    <select name="category" class="input select-field">
+                        <option value="Food" {% if expense.category=='Food' %}selected{% endif %}>🍔 Food</option>
+                        <option value="Transport" {% if expense.category=='Transport' %}selected{% endif %}>🚗 Transport
+                        </option>
+                        <option value="Shopping" {% if expense.category=='Shopping' %}selected{% endif %}>🛒 Shopping
+                        </option>
+                        <option value="Rent" {% if expense.category=='Rent' %}selected{% endif %}>🏠 Rent</option>
+                        <option value="Others" {% if expense.category=='Others' %}selected{% endif %}>📦 Others</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="input-group" style="margin-bottom:14px">
+                <label class="input-label">{{ t.note }}</label>
+                <input type="text" name="note" class="input" value="{{ expense.note or '' }}"
+                    placeholder="What was this for?">
+            </div>
+
+            <div class="grid grid-cols-3 gap-4" style="margin-bottom:20px">
+                <div class="input-group">
+                    <label class="input-label">Day</label>
+                    <select name="day" required class="input select-field">
+                        {% for d in range(1,32) %}<option value="{{ d }}" {% if d==expense.day|int %}selected{% endif
+                            %}>{{ d }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Month</label>
+                    <select name="month" required class="input select-field">
+                        {% for m in range(1,13) %}<option value="{{ m }}" {% if m==expense.month|int %}selected{% endif
+                            %}>{{ m }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Year</label>
+                    <select name="year" required class="input select-field">
+                        {% for y in range(2022,2031) %}<option value="{{ y }}" {% if y==expense.year|int %}selected{%
+                            endif %}>{{ y }}</option>{% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div style="display:flex;gap:9px">
+                <button type="submit" class="btn btn-primary" style="flex:1;padding:12px;font-size:14px">Save
+                    Changes</button>
+                <a href="/expenses" class="btn btn-secondary" style="padding:12px 20px">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

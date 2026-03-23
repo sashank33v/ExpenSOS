@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}Reminders | ExpenSOS{% endblock %}
+{% block header_title %}{{ t.reminders }}{% endblock %}
+{% block header_subtitle %}Never miss a payment deadline{% endblock %}
+
+{% block content %}
+<div style="display:grid;grid-template-columns:320px 1fr;gap:22px;align-items:start">
+
+    <!-- Add Reminder Form -->
+    <div class="card card-p" style="position:sticky;top:76px">
+        <div class="card-title" style="margin-bottom:18px">
+            <div
+                style="width:28px;height:28px;border-radius:8px;background:rgba(6,182,212,.11);display:flex;align-items:center;justify-content:center;color:var(--brand-500)">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+            </div>
+            {{ t.add_reminder if t else 'Add Reminder' }}
+        </div>
+        <form action="/reminders/add" method="POST">
+            <div class="input-group" style="margin-bottom:12px">
+                <label class="input-label">Description</label>
+                <input type="text" name="message" required class="input" placeholder="e.g. Pay Electricity Bill">
+            </div>
+            <div class="input-group" style="margin-bottom:18px">
+                <label class="input-label">Due Date</label>
+                <input type="date" name="remind_date" required class="input">
+            </div>
+            <button type="submit" class="btn btn-primary btn-full">Save Reminder</button>
+        </form>
+    </div>
+
+    <!-- Reminders List -->
+    <div>
+        <div style="font-size:14px;font-weight:700;color:var(--gray-900);margin-bottom:14px">Upcoming Reminders</div>
+        <div style="display:flex;flex-direction:column;gap:9px">
+            {% for r in reminders %}
+            <div class="card card-p"
+                style="display:flex;align-items:center;gap:14px;border-left:3px solid var(--brand-500);transition:transform .18s,box-shadow .18s"
+                onmouseover="this.style.transform='translateX(2px)'" onmouseout="this.style.transform=''">
+                <div
+                    style="width:38px;height:38px;border-radius:50%;background:rgba(6,182,212,.10);display:flex;align-items:center;justify-content:center;color:var(--brand-500);flex-shrink:0">
+                    <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                    </svg>
+                </div>
+                <div style="flex:1;min-width:0">
+                    <div style="font-size:14px;font-weight:700;color:var(--gray-900)">{{ r.message }}</div>
+                    <div style="display:flex;align-items:center;gap:5px;margin-top:3px">
+                        <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2"
+                            viewBox="0 0 24 24" style="color:var(--gray-400)">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span style="font-size:12px;color:var(--gray-500);font-weight:500">{{ r.remind_date }}</span>
+                    </div>
+                </div>
+                <a href="/reminders/delete/{{ r.id }}" onclick="return confirm('{{ t.confirm_delete }}')"
+                    class="action-btn edit" title="Mark as Done"
+                    style="color:var(--green-500);background:rgba(34,197,94,.08);border-color:rgba(34,197,94,.15)">
+                    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                </a>
+            </div>
+            {% else %}
+            <div class="card">
+                <div class="empty-state">
+                    <svg width="38" height="38" fill="none" stroke="currentColor" stroke-width="1.5"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                    </svg>
+                    <p>{{ t.no_reminders if t else 'All caught up!' }}</p>
+                    <small>No upcoming reminders. Add one to stay on top of your bills.</small>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}

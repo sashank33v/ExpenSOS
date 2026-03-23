@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}Recurring | ExpenSOS{% endblock %}
+{% block header_title %}{{ t.recurring }}{% endblock %}
+{% block header_subtitle %}Your subscriptions and regular bills{% endblock %}
+
+{% block header_actions %}
+<a href="/" class="btn btn-primary btn-sm">
+    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+    </svg>
+    Add Expense
+</a>
+{% endblock %}
+
+{% block content %}
+{% set total_monthly = recurring|sum(attribute='amount') %}
+
+<!-- Stat Cards -->
+<div class="grid grid-cols-3 gap-5" style="margin-bottom:22px">
+    <div class="stat-card">
+        <div class="stat-glow" style="background:var(--brand-400)"></div>
+        <div class="stat-label">Active Subscriptions</div>
+        <div class="stat-value">{{ recurring|length }}</div>
+        <div class="stat-sub" style="color:var(--brand-600)">
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Auto-tracked
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-glow" style="background:var(--purple-400)"></div>
+        <div class="stat-label">Monthly Commitment</div>
+        <div class="stat-value">{{ currency }}{{ total_monthly|round(0)|int }}</div>
+        <div class="stat-sub" style="color:var(--purple-500)">
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Per month
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-glow" style="background:var(--green-400)"></div>
+        <div class="stat-label">Yearly Projection</div>
+        <div class="stat-value">{{ currency }}{{ (total_monthly * 12)|round(0)|int }}</div>
+        <div class="stat-sub" style="color:var(--green-500)">
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+            </svg>
+            Projected annual
+        </div>
+    </div>
+</div>
+
+{% if recurring %}
+<div class="grid grid-cols-3 gap-5">
+    {% for r in recurring %}
+    <div class="card card-p" style="position:relative;transition:transform .2s,box-shadow .2s"
+        onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 10px 32px rgba(0,0,0,.10)'"
+        onmouseout="this.style.transform='';this.style.boxShadow=''">
+
+        <!-- Active pill -->
+        <div style="position:absolute;top:14px;right:14px;display:flex;align-items:center;gap:5px">
+            <span
+                style="width:7px;height:7px;border-radius:50%;background:var(--brand-500);display:inline-block;box-shadow:0 0 6px rgba(6,182,212,.7)"></span>
+            <span style="font-size:11px;font-weight:700;color:var(--brand-600)">Active</span>
+        </div>
+
+        <div class="cat-icon" style="width:42px;height:42px;font-size:19px;margin-bottom:12px">{% if r.category=='Food'
+            %}🍔{% elif r.category=='Transport' %}🚗{% elif r.category=='Shopping' %}🛒{% elif r.category=='Rent' %}🏠{%
+            else %}📦{% endif %}</div>
+
+        <div style="font-size:15px;font-weight:800;color:var(--gray-900);margin-bottom:2px">{{ r.note or r.category }}
+        </div>
+        <div style="font-size:12px;color:var(--gray-400);margin-bottom:14px">{{ r.category }}</div>
+
+        <div style="display:flex;align-items:baseline;gap:3px;margin-bottom:14px">
+            <span style="font-size:26px;font-weight:900;letter-spacing:-1px;color:var(--gray-900)">{{ currency }}{{
+                r.amount }}</span>
+            <span style="font-size:12px;color:var(--gray-400)">/month</span>
+        </div>
+
+        <div style="padding-top:12px;border-top:1px solid var(--gray-100)">
+            <span class="badge badge-cyan">Auto-logs on the {{ r.day_of_month }}th</span>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card">
+    <div class="empty-state">
+        <svg width="42" height="42" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+        <p>{{ t.no_recurring if t else 'No recurring expenses' }}</p>
+        <small>Mark an expense as "recurring" when adding it to track subscriptions here.</small>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

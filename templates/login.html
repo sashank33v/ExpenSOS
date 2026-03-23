@@ -1,0 +1,30 @@
+{% extends "auth_base.html" %}
+{% block title %}Sign In | ExpenSOS{% endblock %}
+
+{% block content %}
+<div class="auth-title">Welcome back</div>
+<div class="auth-subtitle">{{ t.log_in_manage if t else 'Sign in to your ExpenSOS workspace' }}</div>
+
+<form action="/login" method="POST">
+    <div class="form-group">
+        <label class="form-label">{{ t.email if t else 'Email address' }}</label>
+        <input type="email" name="email" class="form-input" placeholder="you@example.com" required autocomplete="email">
+    </div>
+    <div class="form-group">
+        <label class="form-label">{{ t.password if t else 'Password' }}</label>
+        <input type="password" name="password" class="form-input" placeholder="••••••••" required
+            autocomplete="current-password">
+    </div>
+    <button type="submit" class="submit-btn">
+        {{ t.login if t else 'Sign In' }}
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+        </svg>
+    </button>
+</form>
+
+<div class="auth-footer">
+    {{ t.dont_have_account if t else "Don't have an account?" }}
+    <a href="/register">{{ t.register if t else 'Create one free' }}</a>
+</div>
+{% endblock %}

@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}Budgets | ExpenSOS{% endblock %}
+{% block header_title %}{{ t.budgets }}{% endblock %}
+{% block header_subtitle %}Set spending limits for each category{% endblock %}
+
+{% block content %}
+<div class="grid gap-5" style="grid-template-columns:320px 1fr">
+
+    <!-- Set Budget Form -->
+    <div class="card card-p" style="height:fit-content">
+        <div class="card-title" style="margin-bottom:18px">
+            <div
+                style="width:28px;height:28px;border-radius:8px;background:rgba(6,182,212,.11);display:flex;align-items:center;justify-content:center;color:var(--brand-500)">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                </svg>
+            </div>
+            Set Budget Goal
+        </div>
+        <form action="/budgets" method="POST">
+            <div class="input-group" style="margin-bottom:12px">
+                <label class="input-label">Category</label>
+                <select name="category" class="input select-field">
+                    <option value="Food">🍔 Food</option>
+                    <option value="Transport">🚗 Transport</option>
+                    <option value="Shopping">🛒 Shopping</option>
+                    <option value="Rent">🏠 Rent</option>
+                    <option value="Others">📦 Others</option>
+                </select>
+            </div>
+            <div class="input-group" style="margin-bottom:18px">
+                <label class="input-label">Monthly Limit</label>
+                <div class="input-prefix-wrap">
+                    <span class="input-prefix">{{ currency }}</span>
+                    <input type="number" name="budget" class="input" placeholder="0.00" required step="0.01" min="0"
+                        style="padding-left:27px">
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary btn-full">Save Budget</button>
+        </form>
+    </div>
+
+    <!-- Budget Progress -->
+    <div>
+        {% if budget_progress %}
+        <div style="display:flex;flex-direction:column;gap:14px">
+            {% for b in budget_progress %}
+            {% set sc = 'var(--red-500)' if b.status=='danger' else ('var(--yellow-400)' if b.status=='warning' else
+            'var(--brand-500)') %}
+            {% set pbar = 'red' if b.status=='danger' else ('yellow' if b.status=='warning' else 'cyan') %}
+            <div class="card card-p" style="position:relative;overflow:hidden;transition:transform .2s,box-shadow .2s"
+                onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 8px 28px rgba(0,0,0,.09)'"
+                onmouseout="this.style.transform='';this.style.boxShadow=''">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+                    <div style="display:flex;align-items:center;gap:10px">
+                        <div class="cat-icon" style="width:38px;height:38px;font-size:18px">{% if b.category=='Food'
+                            %}🍔{% elif b.category=='Transport' %}🚗{% elif b.category=='Shopping' %}🛒{% elif
+                            b.category=='Rent' %}🏠{% else %}📦{% endif %}</div>
+                        <div>
+                            <div style="font-size:14px;font-weight:700;color:var(--gray-900)">{{ b.category }}</div>
+                            <div style="font-size:12px;color:var(--gray-500);margin-top:1px">{{ currency }}{{
+                                b.spent|round(0)|int }} spent of {{ currency }}{{ b.budget|round(0)|int }}</div>
+                        </div>
+                    </div>
+                    <div style="text-align:right">
+                        <div style="font-size:22px;font-weight:900;color:{{ sc }}">{{ b.percentage }}%</div>
+                        {% if b.status == 'danger' %}<span class="badge badge-red" style="margin-top:4px">Over
+                            budget</span>
+                        {% elif b.status == 'warning' %}<span class="badge badge-yellow" style="margin-top:4px">Near
+                            limit</span>
+                        {% else %}<span class="badge badge-green" style="margin-top:4px">On track</span>{% endif %}
+                    </div>
+                </div>
+                <div class="progress-bar-wrap" style="height:7px">
+                    <div class="progress-bar {{ pbar }}" style="width:min({{ b.percentage }}%,100%)"></div>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+                    <span style="font-size:12px;color:var(--gray-400)">Remaining: <strong
+                            style="color:var(--gray-700)">{{ currency }}{{ [b.budget-b.spent, 0]|max|round(0)|int
+                            }}</strong></span>
+                    <form action="/delete_budget/{{ b.id }}" method="POST"
+                        onsubmit="return confirm('Delete this budget?')">
+                        <button type="submit" class="btn btn-danger btn-sm"
+                            style="padding:4px 9px;font-size:11px">Remove</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="card">
+            <div class="empty-state">
+                <svg width="42" height="42" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
+                </svg>
+                <p>No budgets set yet</p>
+                <small>Use the form to set your first spending limit.</small>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}
