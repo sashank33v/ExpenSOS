@@ -14,17 +14,26 @@ except ImportError:
     easyocr = None
 import re
 
-app = Flask(__name__)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+FRONTEND_DIR = os.path.normpath(os.path.join(BASE_DIR, "..", "frontend"))
+
+app = Flask(
+    __name__,
+    template_folder=os.path.join(FRONTEND_DIR, "templates"),
+    static_folder=os.path.join(FRONTEND_DIR, "static"),
+)
 app.secret_key = 'spendwise_secret_key_2024'
 
 # Upload configuration
-UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
+UPLOAD_FOLDER = os.path.join(BASE_DIR, 'uploads')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max
 
 # Create uploads folder if it doesn't exist
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+DB_PATH = os.path.join(BASE_DIR, "data", "expenses.db")
 
 # ── OCR Reader (EasyOCR) ───────────────────────────────────────────
 # Initialized once. Uses CPU (gpu=False) for better compatibility.
@@ -108,7 +117,7 @@ ITEMS_PER_PAGE = 10
 
 # ---------------- DATABASE CONNECTION ----------------
 def get_db_connection():
-    conn = sqlite3.connect("expenses.db")
+    conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
 

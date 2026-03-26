@@ -1,7 +1,11 @@
 import os
 import re
 
-for root, _, files in os.walk('templates'):
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+FRONTEND_DIR = os.path.normpath(os.path.join(BASE_DIR, "..", "frontend"))
+template_root = os.path.join(FRONTEND_DIR, 'templates')
+
+for root, _, files in os.walk(template_root):
     for file in files:
         if file.endswith('.html'):
             filepath = os.path.join(root, file)

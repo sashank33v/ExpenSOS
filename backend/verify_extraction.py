@@ -1,6 +1,9 @@
 import easyocr
-import re
 import os
+import re
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+UPLOADS_DIR = os.path.join(BASE_DIR, "uploads")
 
 # Copying logic from app.py to avoid complex imports during test
 def extract_amount_python(text):
@@ -74,7 +77,7 @@ def run_test(img_path):
     print(f"EXTRACTED DATE:   {dt}")
 
 if __name__ == "__main__":
-    test_img = 'uploads/27_..sk.jpeg'
+    test_img = os.path.join(UPLOADS_DIR, '27_..sk.jpeg')
     if os.path.exists(test_img):
         run_test(test_img)
     else:
