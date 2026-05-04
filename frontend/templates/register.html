@@ -6,6 +6,7 @@
 <div class="auth-subtitle">{{ t.start_tracking if t else 'Start tracking your finances in minutes' }}</div>
 
 <form action="/register" method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="form-group">
         <label class="form-label">{{ t.username if t else 'Username' }}</label>
         <input type="text" name="username" class="form-input" placeholder="johndoe" required>

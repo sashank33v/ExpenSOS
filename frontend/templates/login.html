@@ -6,6 +6,7 @@
 <div class="auth-subtitle">{{ t.log_in_manage if t else 'Sign in to your ExpenSOS workspace' }}</div>
 
 <form action="/login" method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="form-group">
         <label class="form-label">{{ t.email if t else 'Email address' }}</label>
         <input type="email" name="email" class="form-input" placeholder="you@example.com" required autocomplete="email">

@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: expensos-web
+    env: python
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: gunicorn --chdir backend wsgi:application
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: expensos-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: FLASK_DEBUG
+        value: "false"
+      - key: DB_CONNECT_RETRIES
+        value: "10"
+      - key: DB_CONNECT_DELAY
+        value: "3"
+
+databases:
+  - name: expensos-db
+    databaseName: expensos
+    user: expensos

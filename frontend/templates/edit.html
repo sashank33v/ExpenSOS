@@ -52,21 +52,21 @@
                 <div class="input-group">
                     <label class="input-label">Day</label>
                     <select name="day" required class="input select-field">
-                        {% for d in range(1,32) %}<option value="{{ d }}" {% if d==expense.day|int %}selected{% endif
+                        {% for d in range(1,32) %}<option value="{{ d }}" {% if d==edit_day %}selected{% endif
                             %}>{{ d }}</option>{% endfor %}
                     </select>
                 </div>
                 <div class="input-group">
                     <label class="input-label">Month</label>
                     <select name="month" required class="input select-field">
-                        {% for m in range(1,13) %}<option value="{{ m }}" {% if m==expense.month|int %}selected{% endif
+                        {% for m in range(1,13) %}<option value="{{ m }}" {% if m==edit_month %}selected{% endif
                             %}>{{ m }}</option>{% endfor %}
                     </select>
                 </div>
                 <div class="input-group">
                     <label class="input-label">Year</label>
                     <select name="year" required class="input select-field">
-                        {% for y in range(2022,2031) %}<option value="{{ y }}" {% if y==expense.year|int %}selected{%
+                        {% for y in range(2022,2031) %}<option value="{{ y }}" {% if y==edit_year %}selected{%
                             endif %}>{{ y }}</option>{% endfor %}
                     </select>
                 </div>

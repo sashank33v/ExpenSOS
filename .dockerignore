@@ -1,0 +1,12 @@
+.git
+.gitignore
+venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+*.log
+out.txt
+out2.txt
+out3.txt
+error.log

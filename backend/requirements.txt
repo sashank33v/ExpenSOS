@@ -4,3 +4,7 @@ pillow
 google-generativeai
 groq
 openai
+gunicorn
+psycopg2-binary
+flask-wtf
+wtforms

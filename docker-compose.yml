@@ -1,0 +1,31 @@
+services:
+  db:
+    image: postgres:16
+    container_name: expensos-db
+    environment:
+      POSTGRES_DB: expensos
+      POSTGRES_USER: expensos
+      POSTGRES_PASSWORD: expensos
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  expensos:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: expensos
+    depends_on:
+      - db
+    ports:
+      - "6969:6969"
+    environment:
+      SECRET_KEY: change-this-before-exposing-publicly
+      PORT: 6969
+      DATABASE_URL: postgresql://expensos:expensos@db:5432/expensos
+    volumes:
+      - ./backend/uploads:/app/backend/uploads
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

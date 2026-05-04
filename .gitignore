@@ -2,3 +2,11 @@ venv/
 __pycache__/
 *.pyc
 .env
+.local_pgdata/
+.local_pgsocket/
+*.log
+*.sqlite
+backend/data/*.db
+fix_tail.py
+fix_test.py
+truncate.py

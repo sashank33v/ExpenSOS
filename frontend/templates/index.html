@@ -141,6 +141,7 @@
         </div>
         <div style="padding:22px">
             <form action="/add" method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="grid grid-cols-2 gap-3" style="margin-bottom:12px">
                     <div class="input-group">
                         <label class="input-label">{{ t.amount }}</label>
@@ -206,101 +207,10 @@
                     </label>
                 </div>
 
-                <!-- ── OCR RECEIPT UPLOAD ──────────────────────────── -->
-                <div id="ocrZone"
-                    style="border:2px dashed var(--gray-300);border-radius:12px;padding:16px;margin-bottom:14px;cursor:pointer;transition:all .2s;text-align:center;position:relative"
-                    onclick="document.getElementById('receiptInput').click()"
-                    ondragover="event.preventDefault();this.style.borderColor='var(--brand-500)';this.style.background='rgba(6,182,212,.04)'"
-                    ondragleave="this.style.borderColor='var(--gray-300)';this.style.background=''"
-                    ondrop="handleDrop(event)">
-
-                    <!-- Default (idle) state -->
-                    <div id="ocrIdle">
-                        <div
-                            style="display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:10px;background:var(--gray-100);border:1px solid var(--gray-200);margin-bottom:8px">
-                            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"
-                                viewBox="0 0 24 24" style="color:var(--gray-400)">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
-                        </div>
-                        <div style="font-size:13px;font-weight:700;color:var(--gray-700)">Upload Bill / Receipt</div>
-                        <div style="font-size:11.5px;color:var(--gray-400);margin-top:3px">Drop image here or click to
-                            browse &mdash; amount auto-detected via OCR</div>
-                    </div>
-
-                    <!-- Scanning state -->
-                    <div id="ocrScanning" style="display:none">
-                        <div style="display:flex;align-items:center;gap:10px">
-                            <div id="ocrThumb"
-                                style="width:52px;height:52px;border-radius:8px;overflow:hidden;flex-shrink:0;border:1px solid var(--gray-200);background:var(--gray-100)">
-                                <img id="ocrThumbImg" src="" alt="" style="width:100%;height:100%;object-fit:cover">
-                            </div>
-                            <div style="flex:1;text-align:left">
-                                <div style="font-size:12.5px;font-weight:700;color:var(--gray-700);margin-bottom:6px"
-                                    id="ocrStatusText">Reading bill&hellip;</div>
-                                <div style="height:5px;background:var(--gray-200);border-radius:100px;overflow:hidden">
-                                    <div id="ocrProgress"
-                                        style="height:100%;width:0%;background:linear-gradient(90deg,var(--brand-700),var(--brand-400));border-radius:100px;transition:width .4s ease">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Result state -->
-                    <div id="ocrResult" style="display:none">
-                        <div style="display:flex;align-items:center;gap:12px">
-                            <div
-                                style="width:52px;height:52px;border-radius:8px;overflow:hidden;flex-shrink:0;border:1px solid var(--gray-200)">
-                                <img id="ocrResultThumb" src="" alt="" style="width:100%;height:100%;object-fit:cover">
-                            </div>
-                            <div style="flex:1;text-align:left">
-                                <div
-                                    style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--brand-600);margin-bottom:2px">
-                                    Amount detected</div>
-                                <div id="ocrAmountDisplay"
-                                    style="font-size:22px;font-weight:900;letter-spacing:-0.8px;color:var(--gray-900)">
-                                </div>
-                                <div id="ocrConfidence" style="font-size:11px;color:var(--gray-400);margin-top:1px">
-                                </div>
-                            </div>
-                            <button type="button" onclick="resetOcr(event)"
-                                style="width:26px;height:26px;border-radius:7px;border:1px solid var(--gray-200);background:var(--gray-50);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--gray-500);flex-shrink:0">
-                                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"
-                                    viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Error state -->
-                    <div id="ocrError" style="display:none">
-                        <div style="display:flex;align-items:center;gap:10px">
-                            <div
-                                style="width:52px;height:52px;border-radius:8px;overflow:hidden;flex-shrink:0;border:1px solid rgba(239,68,68,.2);background:rgba(239,68,68,.06)">
-                                <img id="ocrErrorThumb" src="" alt="" style="width:100%;height:100%;object-fit:cover">
-                            </div>
-                            <div style="flex:1;text-align:left">
-                                <div style="font-size:12.5px;font-weight:700;color:var(--red-500)">Could not detect
-                                    amount</div>
-                                <div style="font-size:11.5px;color:var(--gray-400);margin-top:2px">Please enter it
-                                    manually below</div>
-                            </div>
-                            <button type="button" onclick="resetOcr(event)"
-                                style="width:26px;height:26px;border-radius:7px;border:1px solid rgba(239,68,68,.2);background:rgba(239,68,68,.06);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--red-500);flex-shrink:0">
-                                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"
-                                    viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Hidden real file input -->
-                    <input type="file" name="receipt" accept="image/*" id="receiptInput"
-                        style="position:absolute;inset:0;opacity:0;pointer-events:none;width:100%;height:100%">
+                <div class="input-group" style="margin-bottom:14px">
+                    <label class="input-label">{{ t.attach_receipt }}</label>
+                    <input type="file" name="receipt" accept="image/*" id="receiptInput" class="input"
+                        style="padding:10px 12px">
                 </div>
 
                 <button type="submit" class="btn btn-primary btn-full" id="submitBtn"
@@ -518,122 +428,5 @@
         });
     });
 
-    // ═══════════════════════════════════════════════════════════
-    // OCR ENGINE — Tesseract.js client-side receipt scanner
-    // ═══════════════════════════════════════════════════════════
-
-    // Switch between zone states: idle | scanning | result | error
-    function setOcrState(state) {
-        ['Idle', 'Scanning', 'Result', 'Error'].forEach(s =>
-            document.getElementById('ocr' + s).style.display = s.toLowerCase() === state ? '' : 'none'
-        );
-        const zone = document.getElementById('ocrZone');
-        const styles = {
-            idle: { border: '', bg: '', cursor: 'pointer' },
-            scanning: { border: 'var(--brand-400)', bg: 'rgba(6,182,212,.04)', cursor: 'default' },
-            result: { border: 'var(--brand-500)', bg: 'rgba(6,182,212,.05)', cursor: 'default' },
-            error: { border: 'rgba(239,68,68,.4)', bg: 'rgba(239,68,68,.04)', cursor: 'pointer' },
-        };
-        const s = styles[state] || styles.idle;
-        zone.style.borderColor = s.border;
-        zone.style.background = s.bg;
-        zone.style.cursor = s.cursor;
-    }
-
-    // Date extraction is now handled on the server.
-
-    // Fill the Day / Month / Year select dropdowns
-    function fillDateSelects(d) {
-        const dayEl = document.querySelector('select[name="day"]');
-        const monthEl = document.querySelector('select[name="month"]');
-        const yearEl = document.querySelector('select[name="year"]');
-        if (dayEl) dayEl.value = String(d.day);
-        if (monthEl) monthEl.value = String(d.month);
-        if (yearEl) yearEl.value = String(d.year);
-        // Flash the date row
-        [dayEl, monthEl, yearEl].forEach(el => {
-            if (!el) return;
-            el.style.transition = 'box-shadow .4s,border-color .4s';
-            el.style.borderColor = 'var(--brand-500)';
-            el.style.boxShadow = '0 0 0 3px rgba(6,182,212,.18)';
-            setTimeout(() => { el.style.borderColor = ''; el.style.boxShadow = ''; }, 2200);
-        });
-    }
-
-    function setThumbs(url) {
-        ['ocrThumbImg', 'ocrResultThumb', 'ocrErrorThumb'].forEach(id => {
-            const el = document.getElementById(id); if (el) el.src = url;
-        });
-    }
-
-    async function runOcr(file) {
-        const url = URL.createObjectURL(file);
-        setThumbs(url);
-        setOcrState('scanning');
-
-        const statusEl = document.getElementById('ocrStatusText');
-        const progressEl = document.getElementById('ocrProgress');
-        progressEl.style.width = '0%';
-
-        const formData = new FormData();
-        formData.append('file', file);
-
-        statusEl.textContent = 'Uploading to server...';
-        progressEl.style.width = '30%';
-
-        try {
-            const response = await fetch('/api/ocr', {
-                method: 'POST',
-                body: formData
-            });
-
-            if (!response.ok) throw new Error('OCR Failed');
-
-            progressEl.style.width = '100%';
-            statusEl.textContent = 'Processing results...';
-
-            const data = await response.json();
-
-            if (data.success && data.amount !== null) {
-                const inp = document.querySelector('input[name="amount"]');
-                inp.value = data.amount.toFixed(2);
-                inp.style.transition = 'box-shadow .4s,border-color .4s';
-                inp.style.borderColor = 'var(--brand-500)';
-                inp.style.boxShadow = '0 0 0 3px rgba(6,182,212,.22)';
-                setTimeout(() => { inp.style.borderColor = ''; inp.style.boxShadow = ''; }, 2200);
-
-                if (data.date) fillDateSelects(data.date);
-
-                const dateStr = data.date
-                    ? `${String(data.date.day).padStart(2, '0')}/${String(data.date.month).padStart(2, '0')}/${data.date.year}`
-                    : 'Date not found';
-
-                document.getElementById('ocrAmountDisplay').textContent = '{{ currency }}' + data.amount.toFixed(2);
-                document.getElementById('ocrConfidence').textContent =
-                    'Confidence ' + data.confidence + '%  ·  Date: ' + dateStr;
-                setOcrState('result');
-            } else {
-                setOcrState('error');
-            }
-        } catch (err) {
-            console.error('OCR error:', err);
-            setOcrState('error');
-        }
-    }
-
-    // Handlers
-    document.getElementById('receiptInput').addEventListener('change', function () {
-        if (this.files && this.files[0]) runOcr(this.files[0]);
-    });
-
-    const zone = document.getElementById('ocrZone');
-    zone.addEventListener('dragover', e => { e.preventDefault(); zone.style.borderColor = 'var(--brand-500)'; });
-    zone.addEventListener('dragleave', () => { if (document.getElementById('ocrIdle').style.display !== 'none') zone.style.borderColor = ''; });
-    zone.addEventListener('drop', e => {
-        e.preventDefault();
-        zone.style.borderColor = '';
-        if (e.dataTransfer.files && e.dataTransfer.files[0]) runOcr(e.dataTransfer.files[0]);
-    });
-    function resetOcr(e) { if (e) e.stopPropagation(); setOcrState('idle'); document.getElementById('receiptInput').value = ''; }
 </script>
 {% endblock %}
