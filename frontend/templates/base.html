@@ -1533,10 +1533,17 @@
             if (sizes[fs]) document.documentElement.style.fontSize = sizes[fs];
         })();
 
-        // Service Worker Registration
+        // Service Worker Registration (Force Update)
         if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(registrations => {
+                for (let registration of registrations) {
+                    // If the SW is old, unregister it
+                    registration.unregister();
+                }
+            });
+
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js').then(reg => {
+                navigator.serviceWorker.register('/sw.js?v=3').then(reg => {
                     console.log('SW registered:', reg);
                 }).catch(err => {
                     console.log('SW failed:', err);

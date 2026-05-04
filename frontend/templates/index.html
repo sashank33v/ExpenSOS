@@ -400,7 +400,10 @@
                     var fontSize = (height / 114).toFixed(2);
                     ctx.font = "bold " + fontSize + "em sans-serif";
                     ctx.textBaseline = "middle";
-                    ctx.fillStyle = isDark ? "#fff" : "#111827";
+                    // Robust color detection
+                    const isNowDark = document.documentElement.classList.contains('dark');
+                    ctx.fillStyle = isNowDark ? "#ffffff" : "#111827";
+                    
                     var text = "{{ currency }}" + total.toLocaleString(),
                         textX = Math.round((width - ctx.measureText(text).width) / 2),
                         textY = height / 2;
