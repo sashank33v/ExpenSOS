@@ -50,6 +50,16 @@ csrf.init_app(app)
 def ads_txt():
     return send_from_directory(app.static_folder, 'ads.txt')
 
+@app.route('/manifest.json')
+def manifest():
+    return send_from_directory(app.static_folder, 'manifest.json')
+
+@app.route('/sw.js')
+def service_worker():
+    response = send_from_directory(app.static_folder, 'sw.js')
+    response.headers['Service-Worker-Allowed'] = '/'
+    return response
+
 # Upload configuration
 UPLOAD_FOLDER = os.path.join(BASE_DIR, 'uploads')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}

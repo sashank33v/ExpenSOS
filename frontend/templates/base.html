@@ -12,6 +12,9 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5545929145634139"
          crossorigin="anonymous"></script>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#06b6d4">
+    <link rel="apple-touch-icon" href="/static/icon-192.png">
     <style>
         /* ═══════════════════════════════════════════════════
    EXPENSOS — PREMIUM DESIGN SYSTEM v2
@@ -1262,6 +1265,7 @@
                 position: fixed;
                 transform: translateX(-100%);
                 box-shadow: var(--shadow-xl);
+                z-index: 1000;
             }
 
             .sidebar.open {
@@ -1273,33 +1277,47 @@
             }
 
             .page-body {
-                padding: 20px 20px;
+                padding: 16px;
             }
 
             .topbar {
-                padding: 0 20px;
+                padding: 0 16px;
+            }
+
+            /* Responsive Grid overrides */
+            .grid-2-1, .grid-1-1, .grid-b-1, .grid-s-1 {
+                grid-template-columns: 1fr !important;
             }
         }
 
         @media (max-width: 768px) {
-
             .grid-cols-2,
-            .grid-cols-3 {
-                grid-template-columns: 1fr;
+            .grid-cols-3,
+            .grid-cols-4 {
+                grid-template-columns: 1fr !important;
+            }
+
+            .stat-card {
+                padding: 18px;
             }
 
             .stat-value {
-                font-size: 28px;
+                font-size: 26px;
+            }
+            
+            .card-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
             }
         }
 
-        @media (max-width: 500px) {
-            .page-body {
-                padding: 14px;
+        @media (max-width: 480px) {
+            .header-title {
+                font-size: 20px;
             }
-
-            .topbar {
-                padding: 0 14px;
+            .header-actions {
+                display: none;
             }
         }
     </style>
@@ -1501,6 +1519,17 @@
             const fs = document.body.getAttribute('data-fontsize');
             if (sizes[fs]) document.documentElement.style.fontSize = sizes[fs];
         })();
+
+        // Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').then(reg => {
+                    console.log('SW registered:', reg);
+                }).catch(err => {
+                    console.log('SW failed:', err);
+                });
+            });
+        }
     </script>
     {% block extra_scripts %}{% endblock %}
 </body>
