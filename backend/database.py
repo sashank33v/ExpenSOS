@@ -245,9 +245,8 @@ def init_db() -> None:
                 id             SERIAL PRIMARY KEY,
                 user_id        INTEGER NOT NULL DEFAULT 1
                                    REFERENCES users(id) ON DELETE CASCADE,
-                days           TEXT NOT NULL,
-                time           TEXT NOT NULL,
-                reminder_count INTEGER NOT NULL DEFAULT 1 CHECK (reminder_count > 0),
+                message        TEXT NOT NULL,
+                remind_date    DATE NOT NULL,
                 active         BOOLEAN NOT NULL DEFAULT TRUE,
                 created_at     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
             )

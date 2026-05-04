@@ -314,6 +314,20 @@ def index():
 
     insights = generate_insights(expenses, month_expenses, dict(category_data), total)
 
+    with get_db_connection() as conn:
+        # Check for due reminders (within next 3 days)
+        cursor = conn.execute(
+            "SELECT message, remind_date FROM reminders "
+            "WHERE user_id = %s AND active = TRUE "
+            "AND remind_date BETWEEN CURRENT_DATE AND (CURRENT_DATE + INTERVAL '3 days')",
+            (user_id,)
+        )
+        due_reminders = cursor.fetchall()
+        cursor.close()
+
+        for r in due_reminders:
+            flash(f"🔔 Reminder: {r['message']} is due on {r['remind_date']}!", "budget_alert")
+
     return render_template(
         "index.html",
         expenses=expenses[:10],
@@ -1054,34 +1068,21 @@ def reminders():
 @login_required
 def add_reminder():
     user_id = get_current_user_id()
-    days = request.form.getlist("days")
-    reminder_time = (request.form.get("time") or "").strip()
-    reminder_count_raw = (request.form.get("reminder_count") or "").strip()
+    message = (request.form.get("message") or "").strip()
+    remind_date = (request.form.get("remind_date") or "").strip()
 
-    if not reminder_time:
-        flash("Reminder time is required.", "error")
-        return redirect("/reminders")
-    if not days:
-        flash("Please select at least one day.", "error")
-        return redirect("/reminders")
-
-    try:
-        reminder_count = int(reminder_count_raw)
-        if reminder_count < 1:
-            raise ValueError
-    except (ValueError, TypeError):
-        flash("Reminder count must be a positive whole number.", "error")
+    if not message or not remind_date:
+        flash("Message and due date are required.", "error")
         return redirect("/reminders")
 
     with get_db_connection() as conn:
         conn.execute(
-            "INSERT INTO reminders (user_id, days, time, reminder_count, active) "
-            "VALUES (%s, %s, %s, %s, TRUE)",
-            (user_id, ",".join(days), reminder_time, reminder_count),
+            "INSERT INTO reminders (user_id, message, remind_date) VALUES (%s, %s, %s)",
+            (user_id, message, remind_date)
         ).close()
         conn.commit()
 
-    flash("Reminder added successfully!", "success")
+    flash("Reminder set successfully!", "success")
     return redirect("/reminders")
 
 
