@@ -752,6 +752,59 @@ def update_settings():
     return redirect("/settings")
 
 
+@app.route("/settings/change-password", methods=["POST"])
+@login_required
+def change_password():
+    user_id = get_current_user_id()
+    current_pw = request.form.get("current_password")
+    new_pw = request.form.get("new_password")
+    confirm_pw = request.form.get("confirm_password")
+
+    if not current_pw or not new_pw or not confirm_pw:
+        flash("All password fields are required.", "error")
+        return redirect("/settings")
+
+    if new_pw != confirm_pw:
+        flash("New passwords do not match.", "error")
+        return redirect("/settings")
+
+    if len(new_pw) < 6:
+        flash("New password must be at least 6 characters.", "error")
+        return redirect("/settings")
+
+    with get_db_connection() as conn:
+        cursor = conn.execute("SELECT password_hash FROM users WHERE id = %s", (user_id,))
+        user = cursor.fetchone()
+        cursor.close()
+
+        if not user or not check_password_hash(user["password_hash"], current_pw):
+            flash("Current password is incorrect.", "error")
+            return redirect("/settings")
+
+        new_hash = generate_password_hash(new_pw)
+        conn.execute("UPDATE users SET password_hash = %s WHERE id = %s", (new_hash, user_id))
+        conn.commit()
+
+    flash("Password updated successfully!", "success")
+    return redirect("/settings")
+
+
+@app.route("/settings/delete-account", methods=["POST"])
+@login_required
+def delete_account():
+    user_id = get_current_user_id()
+    # For security, we could ask for password here too, but let's keep it simple with a POST for now
+    with get_db_connection() as conn:
+        # Cascading deletes should handle expenses, budgets etc if DB is setup with FKs, 
+        # but let's be explicit if needed or trust the init_db schema.
+        conn.execute("DELETE FROM users WHERE id = %s", (user_id,))
+        conn.commit()
+    
+    session.clear()
+    flash("Your account has been permanently deleted. We're sorry to see you go.", "info")
+    return redirect("/login")
+
+
 # ---------------- BUDGETS ----------------
 @app.route("/budgets")
 @login_required

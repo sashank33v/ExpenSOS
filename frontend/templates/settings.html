@@ -31,14 +31,16 @@
                 style="font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--gray-400);margin-bottom:12px">
                 Security</div>
             <button type="button" class="btn btn-secondary btn-full"
-                style="justify-content:flex-start;gap:8px;margin-bottom:8px">
+                style="justify-content:flex-start;gap:8px;margin-bottom:8px"
+                onclick="document.getElementById('pwModal').style.display='flex'">
                 <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round"
                         d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
                 </svg>
                 Change Password
             </button>
-            <button type="button" class="btn btn-danger btn-full" style="justify-content:flex-start;gap:8px">
+            <button type="button" class="btn btn-danger btn-full" style="justify-content:flex-start;gap:8px"
+                onclick="document.getElementById('delModal').style.display='flex'">
                 <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round"
                         d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -140,6 +142,49 @@
 
 </div>
 
+<!-- Change Password Modal -->
+<div id="pwModal" class="modal" style="position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;z-index:2000;padding:20px">
+    <div class="card card-p" style="max-width:400px;width:100%;animation:slideUp .3s ease">
+        <div class="card-title" style="margin-bottom:20px">Change Password</div>
+        <form action="/settings/change-password" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <div class="input-group" style="margin-bottom:12px">
+                <label class="input-label">Current Password</label>
+                <input type="password" name="current_password" required class="input">
+            </div>
+            <div class="input-group" style="margin-bottom:12px">
+                <label class="input-label">New Password</label>
+                <input type="password" name="new_password" required class="input">
+            </div>
+            <div class="input-group" style="margin-bottom:20px">
+                <label class="input-label">Confirm New Password</label>
+                <input type="password" name="confirm_password" required class="input">
+            </div>
+            <div style="display:flex;gap:10px">
+                <button type="button" class="btn btn-secondary" style="flex:1" onclick="this.closest('.modal').style.display='none'">Cancel</button>
+                <button type="submit" class="btn btn-primary" style="flex:1">Update</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete Account Modal -->
+<div id="delModal" class="modal" style="position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;z-index:2000;padding:20px">
+    <div class="card card-p" style="max-width:400px;width:100%;animation:slideUp .3s ease">
+        <div class="card-title" style="margin-bottom:12px;color:var(--red-500)">Delete Account?</div>
+        <p style="font-size:14px;color:var(--gray-600);line-height:1.5;margin-bottom:20px">
+            This action is **permanent** and cannot be undone. All your expenses, budgets, and settings will be deleted forever.
+        </p>
+        <form action="/settings/delete-account" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <div style="display:flex;gap:10px">
+                <button type="button" class="btn btn-secondary" style="flex:1" onclick="this.closest('.modal').style.display='none'">Keep My Account</button>
+                <button type="submit" class="btn btn-danger" style="flex:1">Yes, Delete</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
     function updateFontSizeUI(radio) {
         const group = document.getElementById('fontSizeGroup');
@@ -154,7 +199,7 @@
         card.style.boxShadow = '0 1px 3px rgba(0,0,0,.07)';
         
         // Live preview
-        const sizes = { small: '14px', medium: '16px', large: '18px' };
+        const sizes = { small: '12px', medium: '16px', large: '22px' };
         if (sizes[radio.value]) document.documentElement.style.fontSize = sizes[radio.value];
     }
 </script>
