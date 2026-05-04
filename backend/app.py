@@ -493,14 +493,13 @@ def check_budget_alerts(user_id, category, new_amount):
 
             if percentage >= 100:
                 flash(
-                    f"⚠️ Budget exceeded! You've spent {spent:.0f} of "
-                    f"{budget_amount:.0f} on {category}.",
-                    "error",
+                    f"⚠️ Budget exceeded! You've spent {spent:.0f} of {budget_amount:.0f} on {category}.",
+                    "budget_alert",
                 )
             elif percentage >= 80:
                 flash(
                     f"⚡ Heads up! You've used {percentage:.0f}% of your {category} budget.",
-                    "warning",
+                    "budget_alert",
                 )
 
 # ---------------- DELETE EXPENSE ----------------

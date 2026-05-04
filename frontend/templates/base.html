@@ -1494,6 +1494,9 @@
                         </svg>
                         {{ message }}
                     </div>
+                    {% if category == 'budget_alert' %}
+                    <script>window.addEventListener('load', () => { sendNotification('ExpenSOS Alert', '{{ message|safe }}'); });</script>
+                    {% endif %}
                     {% endfor %}
                 </div>
                 {% endif %}
@@ -1532,6 +1535,19 @@
             const fs = document.body.getAttribute('data-fontsize');
             if (sizes[fs]) document.documentElement.style.fontSize = sizes[fs];
         })();
+
+        // Notifications
+        function requestNotificationPermission() {
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission();
+            }
+        }
+        function sendNotification(title, body) {
+            if ('Notification' in window && Notification.permission === 'granted') {
+                new Notification(title, { body, icon: '/static/icon-192.png' });
+            }
+        }
+        window.addEventListener('load', requestNotificationPermission);
 
         // Service Worker Registration (Force Update)
         if ('serviceWorker' in navigator) {
