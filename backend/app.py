@@ -879,7 +879,7 @@ def budgets():
             })
 
     categories = ['Food', 'Transport', 'Shopping', 'Rent', 'Others']
-    return render_template("budgets.html", budgets=budget_list, categories=categories)
+    return render_template("budgets.html", budget_progress=budget_list, categories=categories)
 
 
 @app.route("/budgets/add", methods=["POST"])
