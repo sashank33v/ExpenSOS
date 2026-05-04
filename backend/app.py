@@ -46,6 +46,10 @@ app.secret_key = _secret
 csrf = CSRFProtect()
 csrf.init_app(app)
 
+@app.route('/ads.txt')
+def ads_txt():
+    return send_from_directory(app.static_folder, 'ads.txt')
+
 # Upload configuration
 UPLOAD_FOLDER = os.path.join(BASE_DIR, 'uploads')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
