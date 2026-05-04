@@ -19,6 +19,7 @@
             Transaction Details
         </div>
         <form action="/edit/{{ expense.id }}" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <div class="grid grid-cols-2 gap-4" style="margin-bottom:14px">
                 <div class="input-group">
                     <label class="input-label">{{ t.amount }}</label>

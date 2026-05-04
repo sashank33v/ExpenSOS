@@ -855,7 +855,7 @@ def recurring():
         )
         recurring_expenses = cursor.fetchall()
         cursor.close()
-    return render_template("recurring.html", recurring_expenses=recurring_expenses)
+    return render_template("recurring.html", recurring=recurring_expenses)
 
 
 @app.route("/recurring/add", methods=["POST"])

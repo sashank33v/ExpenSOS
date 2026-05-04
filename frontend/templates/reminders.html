@@ -18,6 +18,7 @@
             {{ t.add_reminder if t else 'Add Reminder' }}
         </div>
         <form action="/reminders/add" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <div class="input-group" style="margin-bottom:12px">
                 <label class="input-label">Description</label>
                 <input type="text" name="message" required class="input" placeholder="e.g. Pay Electricity Bill">

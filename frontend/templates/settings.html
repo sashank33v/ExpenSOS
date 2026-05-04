@@ -61,6 +61,7 @@
         </div>
 
         <form action="/settings/update" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
 
             <!-- Theme -->
             <div style="margin-bottom:22px">
