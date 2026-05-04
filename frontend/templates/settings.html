@@ -74,7 +74,7 @@
                     <label style="cursor:pointer;display:block">
                         <input type="radio" name="theme" value="{{ theme_val }}" style="display:none" {% if
                             settings.theme==theme_val %}checked{% endif %}
-                            onchange="document.querySelectorAll('.theme-card').forEach(c=>c.style.borderColor='var(--gray-200)');this.closest('label').querySelector('.theme-card').style.borderColor='var(--brand-500)'">
+                            onchange="updateThemeUI(this)">
                         <div class="theme-card"
                             style="padding:14px;border:2px solid {{ 'var(--brand-500)' if settings.theme==theme_val else 'var(--gray-200)' }};border-radius:11px;display:flex;align-items:center;gap:11px;transition:border-color .18s">
                             <span style="font-size:20px">{{ theme_icon }}</span>
@@ -186,6 +186,12 @@
 </div>
 
 <script>
+    function updateThemeUI(radio) {
+        document.querySelectorAll('.theme-card').forEach(c => c.style.borderColor = 'var(--gray-200)');
+        radio.closest('label').querySelector('.theme-card').style.borderColor = 'var(--brand-500)';
+        document.documentElement.classList.toggle('dark', radio.value === 'dark');
+    }
+
     function updateFontSizeUI(radio) {
         const group = document.getElementById('fontSizeGroup');
         group.querySelectorAll('.fs-card').forEach(card => {
