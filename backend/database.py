@@ -253,6 +253,16 @@ def init_db() -> None:
             """
         ).close()
 
+        # Migration for reminders
+        try:
+            conn.execute("ALTER TABLE reminders ADD COLUMN IF NOT EXISTS message TEXT")
+            conn.execute("ALTER TABLE reminders ADD COLUMN IF NOT EXISTS remind_date DATE")
+            # Make old columns nullable if they exist
+            conn.execute("ALTER TABLE reminders ALTER COLUMN days DROP NOT NULL")
+            conn.execute("ALTER TABLE reminders ALTER COLUMN time DROP NOT NULL")
+        except:
+            pass
+
         # -- indexes (created with IF NOT EXISTS via DO block) ---------------
         _create_indexes(conn)
 
