@@ -868,14 +868,16 @@ def budgets():
 
             budget_amount = float(budget['amount'])
             percentage = min((spent / budget_amount) * 100, 100) if budget_amount > 0 else 0
+            status = 'success' if percentage < 70 else ('warning' if percentage < 90 else 'danger')
             budget_list.append({
                 'id': budget['id'],
                 'category': budget['category'],
-                'amount': budget_amount,
+                'budget': budget_amount,
                 'period': budget['period'],
                 'spent': spent,
                 'remaining': max(budget_amount - spent, 0),
                 'percentage': round(percentage, 1),
+                'status': status,
             })
 
     categories = ['Food', 'Transport', 'Shopping', 'Rent', 'Others']
@@ -1054,13 +1056,22 @@ def monthly_data():
 @login_required
 def reminders():
     user_id = get_current_user_id()
-    with get_db_connection() as conn:
-        cursor = conn.execute(
-            "SELECT * FROM reminders WHERE user_id = %s ORDER BY created_at DESC",
-            (user_id,),
-        )
-        reminder_list = cursor.fetchall()
-        cursor.close()
+    reminder_list = []
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.execute(
+                "SELECT * FROM reminders WHERE user_id = %s ORDER BY remind_date ASC",
+                (user_id,),
+            )
+            reminder_list = cursor.fetchall()
+            cursor.close()
+    except Exception as e:
+        logger.error(f"Error fetching reminders: {e}")
+        # Automatically try to fix by re-initializing DB if table is missing
+        with get_db_connection() as conn:
+            from database import init_db
+            init_db()
+
     return render_template("reminders.html", reminders=reminder_list)
 
 
