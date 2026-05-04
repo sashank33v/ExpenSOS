@@ -4,7 +4,7 @@
 {% block header_subtitle %}Manage your preferences{% endblock %}
 
 {% block content %}
-<div class="grid grid-s-1" style="grid-template-columns:260px 1fr;gap:22px;align-items:start">
+<div style="display:grid;grid-template-columns:260px 1fr;gap:22px;align-items:start" class="grid grid-s-1">
 
     <!-- Profile sidebar -->
     <div style="display:flex;flex-direction:column;gap:14px;position:sticky;top:76px">
@@ -116,13 +116,14 @@
             <!-- Font Size -->
             <div style="margin-bottom:26px">
                 <label class="input-label" style="margin-bottom:9px">{{ t.font_size if t else 'Font Size' }}</label>
-                <div
+                <div id="fontSizeGroup"
                     style="display:flex;background:var(--gray-100);padding:3px;border-radius:10px;border:1px solid var(--gray-200);gap:3px">
                     {% for code, name in font_sizes %}
                     <label style="flex:1;cursor:pointer">
                         <input type="radio" name="font_size" value="{{ code }}" style="display:none" {% if
-                            settings.font_size==code %}checked{% endif %}>
-                        <div
+                            settings.font_size==code %}checked{% endif %}
+                            onchange="updateFontSizeUI(this)">
+                        <div class="fs-card"
                             style="padding:7px;border-radius:8px;text-align:center;font-size:13px;font-weight:500;color:var(--gray-500);transition:all .15s;{{ 'background:#fff;color:var(--gray-900);box-shadow:0 1px 3px rgba(0,0,0,.07);' if settings.font_size==code else '' }}">
                             {{ name }}</div>
                     </label>
@@ -138,4 +139,23 @@
     </div>
 
 </div>
+
+<script>
+    function updateFontSizeUI(radio) {
+        const group = document.getElementById('fontSizeGroup');
+        group.querySelectorAll('.fs-card').forEach(card => {
+            card.style.background = 'transparent';
+            card.style.color = 'var(--gray-500)';
+            card.style.boxShadow = 'none';
+        });
+        const card = radio.closest('label').querySelector('.fs-card');
+        card.style.background = '#fff';
+        card.style.color = 'var(--gray-900)';
+        card.style.boxShadow = '0 1px 3px rgba(0,0,0,.07)';
+        
+        // Live preview
+        const sizes = { small: '14px', medium: '16px', large: '18px' };
+        if (sizes[radio.value]) document.documentElement.style.fontSize = sizes[radio.value];
+    }
+</script>
 {% endblock %}
