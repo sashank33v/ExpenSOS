@@ -314,19 +314,23 @@ def index():
 
     insights = generate_insights(expenses, month_expenses, dict(category_data), total)
 
-    with get_db_connection() as conn:
-        # Check for due reminders (within next 3 days)
-        cursor = conn.execute(
-            "SELECT message, remind_date FROM reminders "
-            "WHERE user_id = %s AND active = TRUE "
-            "AND remind_date BETWEEN CURRENT_DATE AND (CURRENT_DATE + INTERVAL '3 days')",
-            (user_id,)
-        )
-        due_reminders = cursor.fetchall()
-        cursor.close()
+    try:
+        with get_db_connection() as conn:
+            # Check for due reminders (within next 3 days)
+            cursor = conn.execute(
+                "SELECT message, remind_date FROM reminders "
+                "WHERE user_id = %s AND active = TRUE "
+                "AND remind_date BETWEEN CURRENT_DATE AND (CURRENT_DATE + INTERVAL '3 days')",
+                (user_id,)
+            )
+            due_reminders = cursor.fetchall()
+            cursor.close()
 
-        for r in due_reminders:
-            flash(f"🔔 Reminder: {r['message']} is due on {r['remind_date']}!", "budget_alert")
+            for r in due_reminders:
+                if r['message']:
+                    flash(f"🔔 Reminder: {r['message']} is due on {r['remind_date']}!", "budget_alert")
+    except Exception as e:
+        logger.error(f"Dashboard reminder check failed: {e}")
 
     return render_template(
         "index.html",
