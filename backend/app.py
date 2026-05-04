@@ -1,6 +1,6 @@
 import logging
 import re
-from flask import Flask, render_template, request, redirect, jsonify, flash, session, url_for
+from flask import Flask, render_template, request, redirect, jsonify, flash, session, url_for, send_from_directory
 from flask_wtf.csrf import CSRFProtect
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
