@@ -134,7 +134,7 @@ def inject_settings():
     lang = settings.get('language', 'en')
     return {
         'currency': settings.get('currency', '₹'),
-        'theme': settings.get('theme', 'dark'),
+        'theme': settings.get('theme') or 'dark',
         'language': lang,
         'font_size': settings.get('font_size', 'medium'),
         'logged_in': logged_in,
@@ -448,6 +448,20 @@ def add_expense():
                 ).close()
 
         conn.commit()
+
+    # If marked as recurring, also add to recurring_expenses table for tracking in that tab
+    if is_recurring:
+        with get_db_connection() as conn:
+            # We set a default next_date as 1 month from now
+            next_date = (datetime.now() + timedelta(days=30)).strftime('%Y-%m-%d')
+            conn.execute(
+                """
+                INSERT INTO recurring_expenses (user_id, amount, category, note, frequency, next_date, active)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                """,
+                (user_id, amount_value, category, note, 'monthly', next_date, True)
+            ).close()
+            conn.commit()
 
     check_budget_alerts(user_id, category, amount_value)
     flash("Expense added successfully!", "success")
